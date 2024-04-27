@@ -10,3 +10,7 @@ commands:
   bounty:
     description: Create a bounty on a player
     usage: /bounty <playername>
+    permission: bounty.create
+permissions:
+  bounty.create:
+    description: Allows the player to run create bounties

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Bounties.iml" filepath="$PROJECT_DIR$/Bounties.iml" />
+      <module fileurl="file://$PROJECT_DIR$/BountiesPlugin.iml" filepath="$PROJECT_DIR$/BountiesPlugin.iml" />
+    </modules>
+  </component>
+</project>
