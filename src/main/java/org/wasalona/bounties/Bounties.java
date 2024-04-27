@@ -67,6 +67,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             }else if (slot == 26) {
                 ItemStack[] items = clickedInventory.getStorageContents();
 
+                if(!validateItems(items)){
+                    player.closeInventory();
+                    event.setCancelled(true);
+                    return;
+                }
+
                 if(createBounty(player, target, items)) {
                     player.sendMessage(ChatColor.GREEN + "Bounty has been placed!");
                 } else {
@@ -74,8 +80,6 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 }
                 player.closeInventory();
                 event.setCancelled(true);
-            }else {
-                return;
             }
         }
     }
@@ -93,9 +97,9 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return false;
             }
 
-            if(sender.hasPermission("bounty.create")) {
-                sender.sendMessage(ChatColor.RED + "You cannot have permission to run this command.");
-            }
+//            if(sender.hasPermission("bounty.create")) {
+//                sender.sendMessage(ChatColor.RED + "You cannot have permission to run this command.");
+//            }
 
             Player player = (Player) sender;
             Player target = Bukkit.getPlayer(args[0]);
@@ -156,20 +160,23 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
     private void returnItems(ItemStack[] items, Player player) {
         for (ItemStack item : items) {
             if (item == null || Arrays.asList(defaultItems).contains(item.getType())) {
-                return;
+                continue;
             }
 
-            int amount = item.getAmount();
-            /// TODO VERIFICAR ESTA VALIDATION
-            if (CoinList.contains(item.getType())) {
-                // Returns coin item to the player's inventory
-                String command = CoinList.getCommand(item.getType());
-                executeCommand("give " + player.getDisplayName() + " " + command + " " + amount);
-            } else {
-                // Return the non-coin item to the player's inventory
-                player.getInventory().addItem(item);
-            }
+            player.getInventory().addItem(item);
         }
+    }
+
+    private boolean validateItems(ItemStack[] items) {
+        boolean hasItems = false;
+        for (ItemStack item : items) {
+            if (item == null || Arrays.asList(defaultItems).contains(item.getType())) {
+                continue;
+            }
+
+            hasItems = true;
+        }
+        return hasItems;
     }
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {

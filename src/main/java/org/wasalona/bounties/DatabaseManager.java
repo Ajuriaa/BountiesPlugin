@@ -1,14 +1,17 @@
 package org.wasalona.bounties;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import java.security.SecureRandom;
 
 import java.sql.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DatabaseManager {
+    private final Material[] defaultItems = { Material.AIR, Material.RED_WOOL, Material.GREEN_WOOL };
 
     public Connection getConnection() throws SQLException {
         String url = "jdbc:mysql://db-mfl-01.sparkedhost.us:3306/s129819_Bounties";
@@ -27,7 +30,7 @@ public class DatabaseManager {
 
         String coordinates = getCoordinates(target);
 
-        String formattedItems = getFormattedItems(rewardItems);
+        String formattedItems = getFormattedItems(rewardItems, player);
 
         // Generate a random code (replace with your code generation logic)
         String generatedCode = generateCode();
@@ -53,13 +56,22 @@ public class DatabaseManager {
         }
     }
 
-    public String getFormattedItems(ItemStack[] items) {
+    public String getFormattedItems(ItemStack[] items, Player player) {
         Map<String, Integer> itemCounts = new HashMap<>();
+
 
         // Count the quantities of each item type
         for (ItemStack item : items) {
-            String itemName = item.getType().toString();
-            itemCounts.put(itemName, itemCounts.getOrDefault(itemName, 0) + item.getAmount());
+            if (item == null || Arrays.asList(defaultItems).contains(item.getType())) {
+                continue;
+            }
+
+            if(CoinList.contains(item)){
+                String itemName = item.getType().toString();
+                itemCounts.put(itemName, itemCounts.getOrDefault(itemName, 0) + item.getAmount());
+            } else {
+                player.getInventory().addItem(item);
+            }
         }
 
         // Construct the string
