@@ -101,72 +101,77 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             Player player = (Player) sender;
 
-            if (args.length == 0) {
-                sender.sendMessage("Usage: /bounty <playername>");
+            // Check permissions
+            if (!player.hasPermission("bounties.bounty")) {
+                player.sendMessage("You don't have permission to use this command.");
                 return false;
             }
 
-            if (args[0].equalsIgnoreCase("checkcode")) {
+            if (args.length == 0) {
+                player.sendMessage("Usage: /bounty <playername>");
+                return false;
+            }
 
-                // Check if the correct number of arguments is provided
+            // Check sub-commands
+            if (args[0].equalsIgnoreCase("checkcode")) {
+                if (!player.hasPermission("bounties.checkcode")) {
+                    player.sendMessage("You don't have permission to use this command.");
+                    return false;
+                }
+                // Handle checkcode command
                 if (args.length != 2) {
                     player.sendMessage("Usage: /bounty checkcode <code>");
                     return false;
                 }
-
                 String code = args[1];
                 handleCheckCode(player, code);
                 return true;
             }
 
             if (args[0].equalsIgnoreCase("items")) {
-
-                // Check if the correct number of arguments is provided
+                if (!player.hasPermission("bounties.items")) {
+                    player.sendMessage("You don't have permission to use this command.");
+                    return false;
+                }
+                // Handle items command
                 if (args.length != 3) {
                     player.sendMessage("Usage: /bounty items <playername> <code>");
                     return false;
                 }
-
                 String code = args[2];
                 Player claimer = Bukkit.getPlayer(args[1]);
-
                 if (claimer == null || !claimer.isOnline()) {
                     player.sendMessage("Player not found or is not online.");
                     return false;
                 }
-
                 giveReward(claimer, player, code);
                 return true;
             }
 
+            // Handle main bounty command
             if (args.length != 1) {
-                sender.sendMessage("Usage: /bounty <playername>");
+                player.sendMessage("Usage: /bounty <playername>");
                 return false;
             }
 
             Player target = Bukkit.getPlayer(args[0]);
-
             if (target == null || !target.isOnline()) {
                 player.sendMessage("Player not found or is not online.");
                 return false;
             }
 
+            // Open bounty inventory
             Inventory inv = Bukkit.createInventory(null, 27, ChatColor.DARK_GREEN + "Bounty");
-
             // Clear the inventory
             inv.clear();
-
             // Add unmovable items
             ItemStack cancelItem = createItem(Material.RED_WOOL, ChatColor.RED + "Cancel");
             ItemStack acceptItem = createItem(Material.GREEN_WOOL, ChatColor.GREEN + "Accept");
-
             inv.setItem(18, cancelItem);
             inv.setItem(26, acceptItem);
-
             player.openInventory(inv);
             setSender(player);
             setTarget(target);
-
             return true;
         }
         return false;
