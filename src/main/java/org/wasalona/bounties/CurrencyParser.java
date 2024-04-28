@@ -11,7 +11,7 @@ public class CurrencyParser {
         String[] currencyPairs = currencyString.split(", ");
         for (String pair : currencyPairs) {
             String[] parts = pair.split(": ");
-            String name = parts[0].split("_")[3];
+            String name = parts[0].split("_")[2];
             int amount = Integer.parseInt(parts[1]);
             resultList.add(new String[] { name.toLowerCase(), String.valueOf(amount) });
         }

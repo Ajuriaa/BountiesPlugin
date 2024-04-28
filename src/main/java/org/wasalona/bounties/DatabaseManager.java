@@ -75,7 +75,7 @@ public class DatabaseManager {
         String items = "";
 
         String query = "SELECT reward_items FROM bounties " +
-                "WHERE claim_code = ? AND active = 1 AND claimer_player_id IS NULL";
+                "WHERE claim_code = ? AND active = 0 AND claimer_player_id IS NULL";
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -90,6 +90,24 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return items;
+    }
+
+    public void setClaimer(Player player, String code) {
+        String query = "UPDATE bounties " +
+                "SET claimer_player_id = ? " +
+                "WHERE claim_code = ?";
+
+        int playerId = getPlayerId(player.getUniqueId().toString());
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, playerId);
+            statement.setString(2, code);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getActiveBountyClaimCode(UUID playerUUID) {

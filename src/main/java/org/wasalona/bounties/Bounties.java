@@ -180,12 +180,14 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
     private void giveReward(Player claimer, Player admin, String code) {
         String items = databaseManager.getItems(code);
         if (items == null || items.isEmpty()) {
-            claimer.sendMessage(ChatColor.RED + "Code is invalid!");
-            admin.sendMessage(ChatColor.RED + "Code is invalid!");
+            claimer.sendMessage(ChatColor.RED + "Bounty already claimed!");
+            admin.sendMessage(ChatColor.RED + "Bounty already claimed!");
             return;
         }
 
         List<String[]> itemList = CurrencyParser.parseCurrencyString(items);
+
+        databaseManager.setClaimer(claimer, code);
 
         for (String[] item : itemList) {
             if (item == null) {
@@ -198,6 +200,8 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             executeCommand(command);
         }
+
+        claimer.sendMessage(ChatColor.GREEN + "Items have been added to your inventory!");
     }
 
     private void handleCheckCode(Player player, String code) {
