@@ -17,7 +17,6 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.event.EventHandler;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public final class Bounties extends JavaPlugin implements CommandExecutor, Listener {
@@ -37,6 +36,8 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         // Register command executor for /bounty command
         Objects.requireNonNull(getCommand("bounty")).setExecutor(this);
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new BountyListener(), this);
+
     }
 
     @Override
@@ -69,11 +70,16 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
                 if(!validateItems(items)){
                     player.closeInventory();
+                    returnItems(items, player);
+                    player.sendMessage(ChatColor.RED + "Place coins in the inventory to create bounty.");
                     event.setCancelled(true);
                     return;
                 }
 
                 if(createBounty(player, target, items)) {
+                    MessageBroadcast messageBroadcast = new MessageBroadcast();
+
+                    messageBroadcast.printPlayerLocation(target);
                     player.sendMessage(ChatColor.GREEN + "Bounty has been placed!");
                 } else {
                     player.sendMessage(ChatColor.RED + "Error creating bounty!");
@@ -170,7 +176,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
     private boolean validateItems(ItemStack[] items) {
         boolean hasItems = false;
         for (ItemStack item : items) {
-            if (item == null || Arrays.asList(defaultItems).contains(item.getType())) {
+            if(item == null || item.getItemMeta() == null) {
+                continue;
+            }
+
+            boolean isCoin = CoinList.contains(item);
+            if ( Arrays.asList(defaultItems).contains(item.getType()) || !isCoin) {
                 continue;
             }
 
@@ -181,9 +192,5 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {
        return databaseManager.createBounty(player, target, items);
-    }
-
-    private void executeCommand(String command) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
     }
 }
