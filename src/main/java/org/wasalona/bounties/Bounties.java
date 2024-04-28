@@ -17,6 +17,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.event.EventHandler;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public final class Bounties extends JavaPlugin implements CommandExecutor, Listener {
@@ -98,16 +99,51 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return false;
             }
 
+            Player player = (Player) sender;
+
+            if (args.length == 0) {
+                sender.sendMessage("Usage: /bounty <playername>");
+                return false;
+            }
+
+            if (args[0].equalsIgnoreCase("checkcode")) {
+
+                // Check if the correct number of arguments is provided
+                if (args.length != 2) {
+                    player.sendMessage("Usage: /bounty checkcode <code>");
+                    return false;
+                }
+
+                String code = args[1];
+                handleCheckCode(player, code);
+                return true;
+            }
+
+            if (args[0].equalsIgnoreCase("items")) {
+
+                // Check if the correct number of arguments is provided
+                if (args.length != 3) {
+                    player.sendMessage("Usage: /bounty items <playername> <code>");
+                    return false;
+                }
+
+                String code = args[2];
+                Player claimer = Bukkit.getPlayer(args[1]);
+
+                if (target == null || !target.isOnline()) {
+                    player.sendMessage("Player not found or is not online.");
+                    return false;
+                }
+
+                giveReward(claimer, player, code);
+                return true;
+            }
+
             if (args.length != 1) {
                 sender.sendMessage("Usage: /bounty <playername>");
                 return false;
             }
 
-//            if(sender.hasPermission("bounty.create")) {
-//                sender.sendMessage(ChatColor.RED + "You cannot have permission to run this command.");
-//            }
-
-            Player player = (Player) sender;
             Player target = Bukkit.getPlayer(args[0]);
 
             if (target == null || !target.isOnline()) {
@@ -134,6 +170,37 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             return true;
         }
         return false;
+    }
+
+    private void giveReward(Player claimer, Player admin, String code) {
+        String items = databaseManager.getItems(code);
+        if (items == null || items.isEmpty()) {
+            claimer.sendMessage(ChatColor.RED + "Code is invalid!");
+            admin.sendMessage(ChatColor.RED + "Code is invalid!");
+            return;
+        }
+
+        List<String[]> itemList = CurrencyParser.parseCurrencyString(items);
+
+        for (String[] item : itemList) {
+            if (item == null) {
+                continue;
+            }
+
+            String name = item[0];
+            int amount = Integer.parseInt(item[1]);
+            String command = "give " + claimer.getName() + " " + "lightmanscurrency:coin_" + name + " " + amount;
+
+            executeCommand(command);
+        }
+    }
+
+    private void handleCheckCode(Player player, String code) {
+        if (databaseManager.checkCode(code)) {
+            player.sendMessage(ChatColor.GREEN + "Code is valid!");
+        } else {
+            player.sendMessage(ChatColor.RED + "Code is invalid!");
+        }
     }
 
 
@@ -192,5 +259,9 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {
        return databaseManager.createBounty(player, target, items);
+    }
+
+    private void executeCommand(String command) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
     }
 }

@@ -50,6 +50,48 @@ public class DatabaseManager {
         return hasActiveBounty;
     }
 
+    public boolean checkCode(String code) {
+        boolean validCode = false;
+        String query = "SELECT COUNT(*) AS valid_code FROM bounties " +
+                "WHERE claim_code = ? AND claimer_player_id IS NULL AND active = 0";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, code);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    int validCount = resultSet.getInt("valid_code");
+                    validCode = validCount == 1;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return validCode;
+    }
+
+    public String getItems(String code) {
+        String items = "";
+
+        String query = "SELECT reward_items FROM bounties " +
+                "WHERE claim_code = ? AND active = 1 AND claimer_player_id IS NULL";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, code);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    items = resultSet.getString("reward_items");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
     public String getActiveBountyClaimCode(UUID playerUUID) {
         String code = null;
 
