@@ -130,7 +130,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 String code = args[2];
                 Player claimer = Bukkit.getPlayer(args[1]);
 
-                if (target == null || !target.isOnline()) {
+                if (claimer == null || !claimer.isOnline()) {
                     player.sendMessage("Player not found or is not online.");
                     return false;
                 }
