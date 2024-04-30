@@ -24,6 +24,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
     private Player sender;
     private Player target;
     private DatabaseManager databaseManager;
+    private final MessageBroadcast messageBroadcast = new MessageBroadcast();
     private final Material[] defaultItems = { Material.AIR, Material.RED_WOOL, Material.GREEN_WOOL };
 
 
@@ -78,8 +79,6 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 }
 
                 if(createBounty(player, target, items)) {
-                    MessageBroadcast messageBroadcast = new MessageBroadcast();
-
                     messageBroadcast.printPlayerLocation(target);
                     player.sendMessage(ChatColor.GREEN + "Bounty has been placed!");
                 } else {
@@ -148,15 +147,57 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return true;
             }
 
+            if (args[0].equalsIgnoreCase("location")) {
+                if (!player.hasPermission("bounties.location")) {
+                    player.sendMessage("You don't have permission to use this command.");
+                    return false;
+                }
+
+                // Handle location command
+                if (args.length != 2) {
+                    player.sendMessage("Usage: /bounty location <playername>");
+                    return false;
+                }
+
+                Player target = Bukkit.getPlayer(args[0]);
+                if (target == null || !target.isOnline()) {
+                    player.sendMessage("Player not found or is not online.");
+                    return false;
+                }
+
+                if(!databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
+                    player.sendMessage("The player does not have an active bounty.");
+                    return false;
+                }
+
+                getCurrentCoordinates(target, player);
+                return true;
+            }
+
             // Handle main bounty command
             if (args.length != 1) {
                 player.sendMessage("Usage: /bounty <playername>");
                 return false;
             }
 
+            if(databaseManager.hasActiveBounty(player.getUniqueId().toString())) {
+                player.sendMessage("You have an active bounty, you cannot create bounties!");
+                return false;
+            }
+
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null || !target.isOnline()) {
                 player.sendMessage("Player not found or is not online.");
+                return false;
+            }
+
+            if(player.getUniqueId() == target.getUniqueId()) {
+                player.sendMessage("You cannot create a bounty on yourself!");
+                return false;
+            }
+
+            if(databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
+                player.sendMessage("The player has an active bounty, use /bounty raise instead!");
                 return false;
             }
 
@@ -202,6 +243,35 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         }
 
         claimer.sendMessage(ChatColor.GREEN + "Items have been added to your inventory!");
+    }
+
+    private void getCurrentCoordinates(Player target, Player player) {
+        Inventory inv = player.getInventory();
+        ItemStack[] items = inv.getContents();
+        boolean paid = false;
+
+        if (items.length == 0) {
+            player.sendMessage("You cannot afford the target coordinates!");
+        }
+
+        for (ItemStack item : items) {
+            if(item == null || item.getItemMeta() == null) {
+                continue;
+            }
+
+            boolean isDiamondCoin = item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_DIAMOND");
+
+            if (isDiamondCoin && item.getAmount() >= 15) {
+                item.setAmount(item.getAmount() - 15);
+                paid = true;
+            }
+        }
+
+        if(paid) {
+            messageBroadcast.messagePlayerLocation(target, player);
+        } else {
+            player.sendMessage("You do not have enough diamond coins to purchase the target coordinates!");
+        }
     }
 
     private void handleCheckCode(Player player, String code) {

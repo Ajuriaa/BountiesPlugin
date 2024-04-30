@@ -11,8 +11,6 @@ commands:
     description: Primary command for bounties
     usage: | 
       /bounty <playername> - Creates a bounty on a player
-      /bounty checkcode <code> - Checks the code of a bounty
-      /bounty items <playername> <code> - Gives the reward of a bounty
 permissions:
   bounties.*:
     description: Gives access to all bounties commands
@@ -21,12 +19,20 @@ permissions:
       bounties.bounty: true
       bounties.checkcode: true
       bounties.items: true
+      bounties.location: true
+      bounties.raise: true
   bounties.bounty:
-    description: Allows the player to create a bounty
+    description: Allows the player the ability to create a bounty
     default: op
   bounties.checkcode:
-    description: Allows the player to check the code of a bounty
+    description: Allows the player the ability to check the code of a bounty
     default: op
   bounties.items:
-    description: Allows the player to check the items of a bounty
+    description: Allows the player the ability to check the items of a bounty
+    default: op
+  bounties.location:
+    description: Allows the player the ability to check the location of a target
+    default: op
+  bounties.raise:
+    description: Allows the player the ability to raise a bounty
     default: op
