@@ -264,6 +264,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             if (isDiamondCoin && item.getAmount() >= 15) {
                 item.setAmount(item.getAmount() - 15);
                 paid = true;
+                break;
             }
         }
 
