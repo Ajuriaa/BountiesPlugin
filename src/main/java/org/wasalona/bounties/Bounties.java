@@ -73,7 +73,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             }else if (slot == 26) {
                 ItemStack[] items = clickedInventory.getStorageContents();
 
-                if(!validateItems(items)){
+                if(invalidItems(items)){
                     player.closeInventory();
                     returnItems(items, player);
                     player.sendMessage(ChatColor.RED + "Place coins in the inventory to create bounty.");
@@ -82,6 +82,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 }
 
                 if(createBounty(player, target, items)) {
+                    databaseManager.updateLastBountyCreatedAt(player.getUniqueId().toString());
                     messageBroadcast.printPlayerLocation(target);
                     player.sendMessage(ChatColor.GREEN + "Bounty has been placed!");
                 } else {
@@ -103,7 +104,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             }else if (slot == 26) {
                 ItemStack[] items = clickedInventory.getStorageContents();
 
-                if(!validateItems(items)){
+                if(invalidItems(items)){
                     player.closeInventory();
                     returnItems(items, player);
                     player.sendMessage(ChatColor.RED + "Place coins in the inventory to raise bounty.");
@@ -244,6 +245,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             // Handle main bounty command
             if (args.length != 1) {
                 player.sendMessage("Usage: /bounty <playername>");
+                return false;
+            }
+
+            if(!databaseManager.canCreateBounty(player.getUniqueId().toString())) {
+                String msg = databaseManager.getTimeRemainingToCreateBounty(player.getUniqueId().toString());
+                player.sendMessage(msg + " left until you can create other bounty!");
                 return false;
             }
 
@@ -396,7 +403,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         }
     }
 
-    private boolean validateItems(ItemStack[] items) {
+    private boolean invalidItems(ItemStack[] items) {
         boolean hasItems = false;
         for (ItemStack item : items) {
             if(item == null || item.getItemMeta() == null) {
@@ -410,7 +417,11 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             hasItems = true;
         }
-        return hasItems;
+        return !hasItems;
+    }
+
+    private boolean minimalWorth(ItemStack[] items) {
+        return
     }
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {
