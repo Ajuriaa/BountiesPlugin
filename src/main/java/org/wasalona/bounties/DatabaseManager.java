@@ -199,6 +199,81 @@ public class DatabaseManager {
         }
     }
 
+    public String getRewardItems(int targetID) {
+        String items = "";
+
+        String query = "SELECT reward_items FROM bounties " +
+                "WHERE target_player_id = ? AND active = 1";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, targetID);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    items = resultSet.getString("reward_items");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    public boolean raiseBounty(Player player, Player target, ItemStack[] rewardItems) {
+        // Get the UUIDs of the sender and target players
+        String targetUUID = target.getUniqueId().toString();
+
+        int targetId = getPlayerId(targetUUID);
+
+        String formattedItems = getFormattedItems(rewardItems, player);
+        String currentReward = getRewardItems(targetId);
+
+        String newReward = RewardMerger.mergeRewards(currentReward, formattedItems);
+
+        // Construct the SQL INSERT query
+        String query = "UPDATE bounties " +
+                "SET reward_items = ? " +
+                "WHERE target_player_id = ? AND active = 1";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            // Set values for parameters in the prepared statement
+            statement.setString(1, newReward);
+            statement.setInt(2, targetId);
+
+            // Execute the query
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean checkBountyIssuer(String code, Player player) {
+        int playerId = getPlayerId(player.getUniqueId().toString());
+        String query = "SELECT COUNT(*) AS matching_bounties FROM bounties " +
+                "WHERE claim_code = ? AND creator_player_id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, code);
+            statement.setInt(2, playerId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    int matchingBounties = resultSet.getInt("matching_bounties");
+                    return matchingBounties > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
     public String getFormattedItems(ItemStack[] items, Player player) {
         Map<String, Integer> itemCounts = new HashMap<>();
 

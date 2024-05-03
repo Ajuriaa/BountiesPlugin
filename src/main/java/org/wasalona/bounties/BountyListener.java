@@ -17,6 +17,7 @@ public class BountyListener implements Listener {
         boolean hasBounty = databaseManager.hasActiveBounty(player.getUniqueId().toString());
 
 
+
         // Check if the death cause was another player
         if (player.getKiller() != null && hasBounty) {
             Player killer = player.getKiller();
@@ -28,10 +29,16 @@ public class BountyListener implements Listener {
 
     private void handlePlayerKilledByPlayer(Player player, Player killer) {
         String code = databaseManager.getActiveBountyClaimCode(player.getUniqueId());
+
+        if(databaseManager.checkBountyIssuer(code, player)) {
+            killer.sendMessage("You can't claim a bounty you issued!");
+            return;
+        }
+
         boolean bountyUpdated = databaseManager.updateBountyToInactive(player.getUniqueId().toString());
 
         if(bountyUpdated) {
-            BookManager.giveWrittenBook(killer, code);
+            BookManager.giveWrittenBook(killer, player, code);
             killer.sendMessage("Go to the police station to get the reward!");
         }
     }

@@ -49,12 +49,15 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        if(event == null) return;
         if (!(event.getWhoClicked() instanceof Player)) return;
+        InventoryView invView = event.getView();
+
+        if (!invView.getTitle().equals(ChatColor.DARK_GREEN + "Bounty") && !invView.getTitle().equals(ChatColor.DARK_GREEN + "Raise Bounty")) return;
         Player player = getSender();
         Player target = getTarget();
 
         Inventory clickedInventory = event.getClickedInventory();
-        InventoryView invView = event.getView();
         int slot = event.getRawSlot();
 
         if (clickedInventory == null) return;
@@ -88,6 +91,36 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 event.setCancelled(true);
             }
         }
+
+        if (invView.getTitle().equals(ChatColor.DARK_GREEN + "Raise Bounty")) {
+            if (slot == 18) {
+                ItemStack[] items = clickedInventory.getStorageContents();
+
+                returnItems(items, player);
+                player.closeInventory();
+                player.sendMessage(ChatColor.RED + "Bounty raise has been cancelled, items returned.");
+                event.setCancelled(true);
+            }else if (slot == 26) {
+                ItemStack[] items = clickedInventory.getStorageContents();
+
+                if(!validateItems(items)){
+                    player.closeInventory();
+                    returnItems(items, player);
+                    player.sendMessage(ChatColor.RED + "Place coins in the inventory to raise bounty.");
+                    event.setCancelled(true);
+                    return;
+                }
+
+                if(raiseBounty(player, target, items)) {
+                    messageBroadcast.messagePlayerLocation(target, player);
+                    player.sendMessage(ChatColor.GREEN + "Bounty has been raised!");
+                } else {
+                    player.sendMessage(ChatColor.RED + "Error raising bounty!");
+                }
+                player.closeInventory();
+                event.setCancelled(true);
+            }
+        }
     }
 
     @Override
@@ -99,6 +132,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             }
 
             Player player = (Player) sender;
+            setSender(player);
 
             // Check permissions
             if (!player.hasPermission("bounties.bounty")) {
@@ -124,6 +158,39 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 }
                 String code = args[1];
                 handleCheckCode(player, code);
+                return true;
+            }
+
+            if (args[0].equalsIgnoreCase("raise")) {
+                if (!player.hasPermission("bounties.raise")) {
+                    player.sendMessage("You don't have permission to use this command.");
+                    return false;
+                }
+                // Handle checkcode command
+                if (args.length != 2) {
+                    player.sendMessage("Usage: /bounty raise <playername>");
+                    return false;
+                }
+
+                Player target = Bukkit.getPlayer(args[1]);
+                setTarget(target);
+
+                if (target == null) {
+                    player.sendMessage("Player not found.");
+                    return false;
+                }
+
+                if(player.getUniqueId() == target.getUniqueId()) {
+                    player.sendMessage("You cannot raise your own bounty!");
+                    return false;
+                }
+
+                if(!databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
+                    player.sendMessage("The player does not have an active bounty!");
+                    return false;
+                }
+
+                bountyRaise(target, player);
                 return true;
             }
 
@@ -159,7 +226,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                     return false;
                 }
 
-                Player target = Bukkit.getPlayer(args[0]);
+                Player target = Bukkit.getPlayer(args[1]);
                 if (target == null || !target.isOnline()) {
                     player.sendMessage("Player not found or is not online.");
                     return false;
@@ -201,17 +268,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return false;
             }
 
-            // Open bounty inventory
-            Inventory inv = Bukkit.createInventory(null, 27, ChatColor.DARK_GREEN + "Bounty");
-            // Clear the inventory
-            inv.clear();
-            // Add unmovable items
-            ItemStack cancelItem = createItem(Material.RED_WOOL, ChatColor.RED + "Cancel");
-            ItemStack acceptItem = createItem(Material.GREEN_WOOL, ChatColor.GREEN + "Accept");
-            inv.setItem(18, cancelItem);
-            inv.setItem(26, acceptItem);
-            player.openInventory(inv);
-            setSender(player);
+            openInv(player, false);
             setTarget(target);
             return true;
         }
@@ -243,6 +300,25 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         }
 
         claimer.sendMessage(ChatColor.GREEN + "Items have been added to your inventory!");
+    }
+
+    private void openInv(Player player, boolean isRaise) {
+        String title = isRaise ? "Raise Bounty" : "Bounty";
+
+        // Open bounty inventory
+        Inventory inv = Bukkit.createInventory(null, 27, ChatColor.DARK_GREEN + title);
+        // Clear the inventory
+        inv.clear();
+        // Add unmovable items
+        ItemStack cancelItem = createItem(Material.RED_WOOL, ChatColor.RED + "Cancel");
+        ItemStack acceptItem = createItem(Material.GREEN_WOOL, ChatColor.GREEN + "Accept");
+        inv.setItem(18, cancelItem);
+        inv.setItem(26, acceptItem);
+        player.openInventory(inv);
+    }
+
+    private void bountyRaise(Player target, Player player) {
+        openInv(player, true);
     }
 
     private void getCurrentCoordinates(Player target, Player player) {
@@ -339,6 +415,10 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {
        return databaseManager.createBounty(player, target, items);
+    }
+
+    private Boolean raiseBounty(Player player, Player target, ItemStack[] items) {
+       return databaseManager.raiseBounty(player, target, items);
     }
 
     private void executeCommand(String command) {
