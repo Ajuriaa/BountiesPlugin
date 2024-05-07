@@ -70,13 +70,21 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 player.closeInventory();
                 player.sendMessage(ChatColor.RED + "Bounty creation has been cancelled, items returned.");
                 event.setCancelled(true);
-            }else if (slot == 26) {
+            } else if (slot == 26) {
                 ItemStack[] items = clickedInventory.getStorageContents();
 
                 if(!validateItems(items)){
                     player.closeInventory();
                     returnItems(items, player);
                     player.sendMessage(ChatColor.RED + "Place coins in the inventory to create bounty.");
+                    event.setCancelled(true);
+                    return;
+                }
+
+                if(!haveMinimum(items)){
+                    player.closeInventory();
+                    returnItems(items, player);
+                    player.sendMessage(ChatColor.RED + "You must have at least 20 diamond coins, 1 emerald or netherite coin to create a bounty.");
                     event.setCancelled(true);
                     return;
                 }
@@ -258,6 +266,13 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return false;
             }
 
+            if(!databaseManager.canCreateBounty(player.getUniqueId().toString())){
+                String timeLeft = databaseManager.getTimeRemainingToCreateBounty(player.getUniqueId().toString());
+                player.sendMessage(ChatColor.RED + "You have a bounty cooldown. Time left: " + timeLeft);
+                player.closeInventory();
+                return false;
+            }
+
             if(player.getUniqueId() == target.getUniqueId()) {
                 player.sendMessage("You cannot create a bounty on yourself!");
                 return false;
@@ -411,6 +426,29 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             hasItems = true;
         }
         return hasItems;
+    }
+
+    private boolean haveMinimum(ItemStack[] items) {
+        boolean minimun = false;
+        for (ItemStack item : items) {
+            if(item == null || item.getItemMeta() == null) {
+                continue;
+            }
+
+            boolean isCoin = CoinList.contains(item);
+            if ( Arrays.asList(defaultItems).contains(item.getType()) || !isCoin) {
+                continue;
+            }
+
+            if(item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_EMERALD") || item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_NETHERITE")) {
+                minimun = true;
+            }
+
+            if(item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_DIAMOND") && item.getAmount() >= 20) {
+                minimun = true;
+            }
+        }
+        return minimun;
     }
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {

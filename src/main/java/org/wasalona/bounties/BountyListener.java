@@ -30,7 +30,7 @@ public class BountyListener implements Listener {
     private void handlePlayerKilledByPlayer(Player player, Player killer) {
         String code = databaseManager.getActiveBountyClaimCode(player.getUniqueId());
 
-        if(databaseManager.checkBountyIssuer(code, player)) {
+        if(databaseManager.checkBountyIssuer(code, killer)) {
             killer.sendMessage("You can't claim a bounty you issued!");
             return;
         }

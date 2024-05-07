@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import java.security.SecureRandom;
 
 import java.sql.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -192,6 +194,8 @@ public class DatabaseManager {
 
             // Execute the query
             statement.executeUpdate();
+
+            updateLastBountyCreatedAt(senderUUID);
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -249,6 +253,76 @@ public class DatabaseManager {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public void updateLastBountyCreatedAt(String playerUUID) {
+        String query = "UPDATE players SET last_bounty_created_at = ? WHERE UUID = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setTimestamp(1, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+            statement.setString(2, playerUUID);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean canCreateBounty(String playerUUID) {
+        String query = "SELECT last_bounty_created_at FROM players WHERE UUID = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, playerUUID);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    LocalDateTime lastBountyCreatedAt = resultSet.getTimestamp("last_bounty_created_at").toLocalDateTime();
+                    LocalDateTime currentDateTime = LocalDateTime.now();
+
+                    Duration duration = Duration.between(lastBountyCreatedAt, currentDateTime);
+                    long hoursPassed = duration.toHours();
+
+                    return hoursPassed >= 35;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Default to false if an error occurs
+        return false;
+    }
+
+    public String getTimeRemainingToCreateBounty(String playerUUID) {
+        String query = "SELECT last_bounty_created_at FROM players WHERE UUID = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, playerUUID);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    LocalDateTime lastBountyCreatedAt = resultSet.getTimestamp("last_bounty_created_at").toLocalDateTime();
+                    LocalDateTime currentDateTime = LocalDateTime.now();
+
+                    Duration duration = Duration.between(lastBountyCreatedAt, currentDateTime);
+                    long hoursPassed = duration.toHours();
+
+                    long timeRemaining = 35 - hoursPassed;
+                    if (timeRemaining < 1) {
+                        long minutesRemaining = duration.toMinutes();
+                        return minutesRemaining + " minutos";
+                    } else {
+                        return timeRemaining + " horas";
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Por defecto, devolver una cadena vacía si ocurre un error
+        return "";
     }
 
     public boolean checkBountyIssuer(String code, Player player) {
