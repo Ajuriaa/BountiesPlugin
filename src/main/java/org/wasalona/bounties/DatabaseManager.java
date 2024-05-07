@@ -270,7 +270,7 @@ public class DatabaseManager {
     }
 
     public boolean canCreateBounty(String playerUUID) {
-        String query = "SELECT last_bounty_created_at FROM players WHERE UUID = ?";
+        String query = "SELECT last_bounty_created FROM players WHERE UUID = ?";
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
