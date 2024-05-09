@@ -81,7 +81,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                     return;
                 }
 
-                if(!haveMinimum(items)){
+                if(!haveMinimum(items, "raise")){
                     player.closeInventory();
                     returnItems(items, player);
                     player.sendMessage(ChatColor.RED + "You must have at least 20 diamond coins, 1 emerald or netherite coin to create a bounty.");
@@ -119,7 +119,16 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                     return;
                 }
 
+                if(!haveMinimum(items, "raise")){
+                    player.closeInventory();
+                    returnItems(items, player);
+                    player.sendMessage(ChatColor.RED + "You must have at least 15 diamond coins, 1 emerald or netherite coin to raise a bounty.");
+                    event.setCancelled(true);
+                    return;
+                }
+
                 if(raiseBounty(player, target, items)) {
+                    Bukkit.broadcastMessage(ChatColor.GOLD + "Bounty has been raised on " + target.getName() + " by " + player.getName() + "!");
                     messageBroadcast.messagePlayerLocation(target, player);
                     player.sendMessage(ChatColor.GREEN + "Bounty has been raised!");
                 } else {
@@ -449,8 +458,9 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         return hasItems;
     }
 
-    private boolean haveMinimum(ItemStack[] items) {
-        boolean minimun = false;
+    private boolean haveMinimum(ItemStack[] items, String type) {
+        boolean isCreate = type.equals("create");
+        int minCoins = isCreate ? 20 : 15;
         for (ItemStack item : items) {
             if(item == null || item.getItemMeta() == null) {
                 continue;
@@ -462,14 +472,14 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             }
 
             if(item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_EMERALD") || item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_NETHERITE")) {
-                minimun = true;
+                return true;
             }
 
-            if(item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_DIAMOND") && item.getAmount() >= 20) {
-                minimun = true;
+            if(isCreate && item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_DIAMOND") && item.getAmount() >= minCoins) {
+                return true;
             }
         }
-        return minimun;
+        return false;
     }
 
     private Boolean createBounty(Player player, Player target, ItemStack[] items) {
