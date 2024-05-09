@@ -40,7 +40,7 @@ public class BountyListener implements Listener {
 
         if(bountyUpdated) {
             BookManager.giveWrittenBook(killer, player, code);
-            killer.sendMessage(ChatColor.GOLD + "Go to the police station to get the reward!");
+            killer.sendMessage(" " + ChatColor.GOLD + ChatColor.BOLD + "Go to the police station to get the reward!");
         }
     }
 }
