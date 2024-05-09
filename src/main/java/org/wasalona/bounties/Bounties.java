@@ -81,7 +81,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                     return;
                 }
 
-                if(!haveMinimum(items, "raise")){
+                if(!haveMinimum(items, "create")){
                     player.closeInventory();
                     returnItems(items, player);
                     player.sendMessage(ChatColor.RED + "You must have at least 20 diamond coins, 1 emerald or netherite coin to create a bounty.");
@@ -475,7 +475,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return true;
             }
 
-            if(isCreate && item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_DIAMOND") && item.getAmount() >= minCoins) {
+            if(item.getType() == Material.valueOf("LIGHTMANSCURRENCY_COIN_DIAMOND") && item.getAmount() >= minCoins) {
                 return true;
             }
         }
