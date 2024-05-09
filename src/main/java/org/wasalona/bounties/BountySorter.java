@@ -24,7 +24,7 @@ public class BountySorter {
         }
 
         // Sort the bounties based on their converted values
-        activeBounties.sort(Comparator.comparingInt(this::convertBountyValue));
+        activeBounties.sort(Comparator.comparingInt(this::convertBountyValue).reversed());
 
         // Get the top 3 bounties (or all if there are less than 3)
         int numBountiesToShow = Math.min(activeBounties.size(), 3);
