@@ -135,7 +135,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("bounty")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage("You must be a player to use this command!");
+                sender.sendMessage(ChatColor.RED + "You must be a player to use this command!");
                 return true;
             }
 
@@ -144,24 +144,24 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             // Check permissions
             if (!player.hasPermission("bounties.bounty")) {
-                player.sendMessage("You don't have permission to use this command.");
+                player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                 return true;
             }
 
             if (args.length == 0) {
-                player.sendMessage("Usage: /bounty <playername>");
+                player.sendMessage(ChatColor.RED + "Usage: /bounty <playername>");
                 return true;
             }
 
             // Check sub-commands
             if (args[0].equalsIgnoreCase("checkcode")) {
                 if (!player.hasPermission("bounties.checkcode")) {
-                    player.sendMessage("You don't have permission to use this command.");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                     return true;
                 }
                 // Handle checkcode command
                 if (args.length != 2) {
-                    player.sendMessage("Usage: /bounty checkcode <code>");
+                    player.sendMessage(ChatColor.RED + "Usage: /bounty checkcode <code>");
                     return true;
                 }
                 String code = args[1];
@@ -171,12 +171,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             if (args[0].equalsIgnoreCase("raise")) {
                 if (!player.hasPermission("bounties.raise")) {
-                    player.sendMessage("You don't have permission to use this command.");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                     return true;
                 }
                 // Handle checkcode command
                 if (args.length != 2) {
-                    player.sendMessage("Usage: /bounty raise <playername>");
+                    player.sendMessage(ChatColor.RED + "Usage: /bounty raise <playername>");
                     return true;
                 }
 
@@ -184,17 +184,17 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 setTarget(target);
 
                 if (target == null) {
-                    player.sendMessage("Player not found.");
+                    player.sendMessage(ChatColor.RED + "Player not found.");
                     return true;
                 }
 
                 if(player.getUniqueId() == target.getUniqueId()) {
-                    player.sendMessage("You cannot raise your own bounty!");
+                    player.sendMessage(ChatColor.RED + "You cannot raise your own bounty!");
                     return true;
                 }
 
                 if(!databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
-                    player.sendMessage("The player does not have an active bounty!");
+                    player.sendMessage(ChatColor.RED + "The player does not have an active bounty!");
                     return true;
                 }
 
@@ -204,18 +204,18 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             if (args[0].equalsIgnoreCase("items")) {
                 if (!player.hasPermission("bounties.items")) {
-                    player.sendMessage("You don't have permission to use this command.");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                     return true;
                 }
                 // Handle items command
                 if (args.length != 3) {
-                    player.sendMessage("Usage: /bounty items <playername> <code>");
+                    player.sendMessage(ChatColor.RED + "Usage: /bounty items <playername> <code>");
                     return true;
                 }
                 String code = args[2];
                 Player claimer = Bukkit.getPlayer(args[1]);
                 if (claimer == null || !claimer.isOnline()) {
-                    player.sendMessage("Player not found or is not online.");
+                    player.sendMessage(ChatColor.RED + "Player not found or is not online.");
                     return false;
                 }
                 giveReward(claimer, player, code);
@@ -224,24 +224,24 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             if (args[0].equalsIgnoreCase("location")) {
                 if (!player.hasPermission("bounties.location")) {
-                    player.sendMessage("You don't have permission to use this command.");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                     return true;
                 }
 
                 // Handle location command
                 if (args.length != 2) {
-                    player.sendMessage("Usage: /bounty location <playername>");
+                    player.sendMessage(ChatColor.RED + "Usage: /bounty location <playername>");
                     return true;
                 }
 
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null || !target.isOnline()) {
-                    player.sendMessage("Player not found or is not online.");
+                    player.sendMessage(ChatColor.RED + "Player not found or is not online.");
                     return true;
                 }
 
                 if(!databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
-                    player.sendMessage("The player does not have an active bounty.");
+                    player.sendMessage(ChatColor.RED + "The player does not have an active bounty.");
                     return true;
                 }
 
@@ -251,13 +251,13 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             if (args[0].equalsIgnoreCase("top")) {
                 if (!player.hasPermission("bounties.top")) {
-                    player.sendMessage("You don't have permission to use this command.");
+                    player.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                     return true;
                 }
 
                 // Handle location command
                 if (args.length != 1) {
-                    player.sendMessage("Usage: /bounty top");
+                    player.sendMessage(ChatColor.RED + "Usage: /bounty top");
                     return true;
                 }
 
@@ -272,18 +272,18 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
             // Handle main bounty command
             if (args.length != 1) {
-                player.sendMessage("Usage: /bounty <playername>");
+                player.sendMessage(ChatColor.RED + "Usage: /bounty <playername>");
                 return true;
             }
 
             if(databaseManager.hasActiveBounty(player.getUniqueId().toString())) {
-                player.sendMessage("You have an active bounty, you cannot create bounties!");
+                player.sendMessage(ChatColor.RED + "You have an active bounty, you cannot create bounties!");
                 return true;
             }
 
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null || !target.isOnline()) {
-                player.sendMessage("Player not found or is not online.");
+                player.sendMessage(ChatColor.RED + "Player not found or is not online.");
                 return true;
             }
 
@@ -295,12 +295,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             }
 
             if(player.getUniqueId() == target.getUniqueId()) {
-                player.sendMessage("You cannot create a bounty on yourself!");
+                player.sendMessage(ChatColor.RED + "You cannot create a bounty on yourself!");
                 return true;
             }
 
             if(databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
-                player.sendMessage("The player has an active bounty, use /bounty raise instead!");
+                player.sendMessage(ChatColor.RED + "The player has an active bounty, use /bounty raise instead!");
                 return true;
             }
 

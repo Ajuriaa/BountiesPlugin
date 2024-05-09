@@ -1,5 +1,6 @@
 package org.wasalona.bounties;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,7 +32,7 @@ public class BountyListener implements Listener {
         String code = databaseManager.getActiveBountyClaimCode(player.getUniqueId());
 
         if(databaseManager.checkBountyIssuer(code, killer)) {
-            killer.sendMessage("You can't claim a bounty you issued!");
+            killer.sendMessage(ChatColor.RED + "You can't claim a bounty you issued!");
             return;
         }
 
@@ -39,7 +40,7 @@ public class BountyListener implements Listener {
 
         if(bountyUpdated) {
             BookManager.giveWrittenBook(killer, player, code);
-            killer.sendMessage("Go to the police station to get the reward!");
+            killer.sendMessage(ChatColor.GOLD + "Go to the police station to get the reward!");
         }
     }
 }
