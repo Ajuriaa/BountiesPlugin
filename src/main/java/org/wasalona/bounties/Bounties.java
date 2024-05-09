@@ -136,7 +136,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         if (command.getName().equalsIgnoreCase("bounty")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("You must be a player to use this command!");
-                return false;
+                return true;
             }
 
             Player player = (Player) sender;
@@ -145,24 +145,24 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             // Check permissions
             if (!player.hasPermission("bounties.bounty")) {
                 player.sendMessage("You don't have permission to use this command.");
-                return false;
+                return true;
             }
 
             if (args.length == 0) {
                 player.sendMessage("Usage: /bounty <playername>");
-                return false;
+                return true;
             }
 
             // Check sub-commands
             if (args[0].equalsIgnoreCase("checkcode")) {
                 if (!player.hasPermission("bounties.checkcode")) {
                     player.sendMessage("You don't have permission to use this command.");
-                    return false;
+                    return true;
                 }
                 // Handle checkcode command
                 if (args.length != 2) {
                     player.sendMessage("Usage: /bounty checkcode <code>");
-                    return false;
+                    return true;
                 }
                 String code = args[1];
                 handleCheckCode(player, code);
@@ -172,12 +172,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             if (args[0].equalsIgnoreCase("raise")) {
                 if (!player.hasPermission("bounties.raise")) {
                     player.sendMessage("You don't have permission to use this command.");
-                    return false;
+                    return true;
                 }
                 // Handle checkcode command
                 if (args.length != 2) {
                     player.sendMessage("Usage: /bounty raise <playername>");
-                    return false;
+                    return true;
                 }
 
                 Player target = Bukkit.getPlayer(args[1]);
@@ -185,17 +185,17 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
 
                 if (target == null) {
                     player.sendMessage("Player not found.");
-                    return false;
+                    return true;
                 }
 
                 if(player.getUniqueId() == target.getUniqueId()) {
                     player.sendMessage("You cannot raise your own bounty!");
-                    return false;
+                    return true;
                 }
 
                 if(!databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
                     player.sendMessage("The player does not have an active bounty!");
-                    return false;
+                    return true;
                 }
 
                 bountyRaise(target, player);
@@ -205,12 +205,12 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             if (args[0].equalsIgnoreCase("items")) {
                 if (!player.hasPermission("bounties.items")) {
                     player.sendMessage("You don't have permission to use this command.");
-                    return false;
+                    return true;
                 }
                 // Handle items command
                 if (args.length != 3) {
                     player.sendMessage("Usage: /bounty items <playername> <code>");
-                    return false;
+                    return true;
                 }
                 String code = args[2];
                 Player claimer = Bukkit.getPlayer(args[1]);
@@ -225,24 +225,24 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             if (args[0].equalsIgnoreCase("location")) {
                 if (!player.hasPermission("bounties.location")) {
                     player.sendMessage("You don't have permission to use this command.");
-                    return false;
+                    return true;
                 }
 
                 // Handle location command
                 if (args.length != 2) {
                     player.sendMessage("Usage: /bounty location <playername>");
-                    return false;
+                    return true;
                 }
 
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null || !target.isOnline()) {
                     player.sendMessage("Player not found or is not online.");
-                    return false;
+                    return true;
                 }
 
                 if(!databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
                     player.sendMessage("The player does not have an active bounty.");
-                    return false;
+                    return true;
                 }
 
                 getCurrentCoordinates(target, player);
@@ -252,13 +252,13 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             if (args[0].equalsIgnoreCase("top")) {
                 if (!player.hasPermission("bounties.top")) {
                     player.sendMessage("You don't have permission to use this command.");
-                    return false;
+                    return true;
                 }
 
                 // Handle location command
                 if (args.length != 1) {
                     player.sendMessage("Usage: /bounty top");
-                    return false;
+                    return true;
                 }
 
                 List<BountyDetails> activeBounties = databaseManager.getActiveBounties();
@@ -273,35 +273,35 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
             // Handle main bounty command
             if (args.length != 1) {
                 player.sendMessage("Usage: /bounty <playername>");
-                return false;
+                return true;
             }
 
             if(databaseManager.hasActiveBounty(player.getUniqueId().toString())) {
                 player.sendMessage("You have an active bounty, you cannot create bounties!");
-                return false;
+                return true;
             }
 
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null || !target.isOnline()) {
                 player.sendMessage("Player not found or is not online.");
-                return false;
+                return true;
             }
 
             if(!databaseManager.canCreateBounty(player.getUniqueId().toString())){
                 String timeLeft = databaseManager.getTimeRemainingToCreateBounty(player.getUniqueId().toString());
                 player.sendMessage(ChatColor.RED + "You have a bounty cooldown. Time left: " + timeLeft);
                 player.closeInventory();
-                return false;
+                return true;
             }
 
             if(player.getUniqueId() == target.getUniqueId()) {
                 player.sendMessage("You cannot create a bounty on yourself!");
-                return false;
+                return true;
             }
 
             if(databaseManager.hasActiveBounty(target.getUniqueId().toString())) {
                 player.sendMessage("The player has an active bounty, use /bounty raise instead!");
-                return false;
+                return true;
             }
 
             openInv(player, false);
