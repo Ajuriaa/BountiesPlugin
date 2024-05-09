@@ -249,6 +249,27 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
                 return true;
             }
 
+            if (args[0].equalsIgnoreCase("top")) {
+                if (!player.hasPermission("bounties.top")) {
+                    player.sendMessage("You don't have permission to use this command.");
+                    return false;
+                }
+
+                // Handle location command
+                if (args.length != 1) {
+                    player.sendMessage("Usage: /bounty top");
+                    return false;
+                }
+
+                List<BountyDetails> activeBounties = databaseManager.getActiveBounties();
+
+                BountySorter bountySorter = new BountySorter();
+
+                bountySorter.displayTopBounties(activeBounties, player);
+
+                return true;
+            }
+
             // Handle main bounty command
             if (args.length != 1) {
                 player.sendMessage("Usage: /bounty <playername>");

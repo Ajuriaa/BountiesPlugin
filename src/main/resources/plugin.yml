@@ -21,6 +21,7 @@ permissions:
       bounties.items: true
       bounties.location: true
       bounties.raise: true
+      bounties.top: true
   bounties.bounty:
     description: Allows the player the ability to create a bounty
     default: op
@@ -35,4 +36,7 @@ permissions:
     default: op
   bounties.raise:
     description: Allows the player the ability to raise a bounty
+    default: op
+  bounties.top:
+    description: Allows the player the ability to check the top bounties
     default: op

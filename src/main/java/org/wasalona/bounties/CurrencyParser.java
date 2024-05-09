@@ -1,7 +1,9 @@
 package org.wasalona.bounties;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CurrencyParser {
 
@@ -17,6 +19,21 @@ public class CurrencyParser {
         }
 
         return resultList;
+    }
+
+    public static Map<String, Integer> convertToMap(String input) {
+        Map<String, Integer> resultMap = new HashMap<>();
+
+        String[] keyValuePairs = input.split(",");
+
+        for (String pair : keyValuePairs) {
+            String[] keyValue = pair.split(": ");
+            String key = keyValue[0].split("_")[2]; // Extract the currency type (e.g., IRON, EMERALD)
+            int value = Integer.parseInt(keyValue[1]);
+            resultMap.put(key, value);
+        }
+
+        return resultMap;
     }
 }
 

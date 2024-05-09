@@ -8,10 +8,7 @@ import java.security.SecureRandom;
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class DatabaseManager {
     private final Material[] defaultItems = { Material.AIR, Material.RED_WOOL, Material.GREEN_WOOL };
@@ -256,7 +253,7 @@ public class DatabaseManager {
     }
 
     public void updateLastBountyCreatedAt(String playerUUID) {
-        String query = "UPDATE players SET last_bounty_created_at = ? WHERE UUID = ?";
+        String query = "UPDATE players SET last_bounty_created = ? WHERE UUID = ?";
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -269,6 +266,48 @@ public class DatabaseManager {
         }
     }
 
+    public List<BountyDetails> getActiveBounties() {
+        List<BountyDetails> activeBounties = new ArrayList<>();
+        String query = "SELECT target_player_id, reward_items FROM bounties WHERE active = 1";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                int targetPlayerId = resultSet.getInt("target_player_id");
+                String rewardItems = resultSet.getString("reward_items");
+
+                activeBounties.add(new BountyDetails(targetPlayerId, rewardItems));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return activeBounties;
+    }
+
+    public String getPlayerNameByID(int playerId) {
+        String playerName = "PLAYERNAME_NOT_FOUND";
+        String query = "SELECT name FROM players WHERE id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, playerId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    playerName = resultSet.getString("name");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return playerName;
+    }
+
     public boolean canCreateBounty(String playerUUID) {
         String query = "SELECT last_bounty_created FROM players WHERE UUID = ?";
 
@@ -278,7 +317,7 @@ public class DatabaseManager {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    LocalDateTime lastBountyCreatedAt = resultSet.getTimestamp("last_bounty_created_at").toLocalDateTime();
+                    LocalDateTime lastBountyCreatedAt = resultSet.getTimestamp("last_bounty_created").toLocalDateTime();
                     LocalDateTime currentDateTime = LocalDateTime.now();
 
                     Duration duration = Duration.between(lastBountyCreatedAt, currentDateTime);
@@ -295,7 +334,7 @@ public class DatabaseManager {
     }
 
     public String getTimeRemainingToCreateBounty(String playerUUID) {
-        String query = "SELECT last_bounty_created_at FROM players WHERE UUID = ?";
+        String query = "SELECT last_bounty_created FROM players WHERE UUID = ?";
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -303,7 +342,7 @@ public class DatabaseManager {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    LocalDateTime lastBountyCreatedAt = resultSet.getTimestamp("last_bounty_created_at").toLocalDateTime();
+                    LocalDateTime lastBountyCreatedAt = resultSet.getTimestamp("last_bounty_created").toLocalDateTime();
                     LocalDateTime currentDateTime = LocalDateTime.now();
 
                     Duration duration = Duration.between(lastBountyCreatedAt, currentDateTime);
@@ -312,9 +351,9 @@ public class DatabaseManager {
                     long timeRemaining = 35 - hoursPassed;
                     if (timeRemaining < 1) {
                         long minutesRemaining = duration.toMinutes();
-                        return minutesRemaining + " minutos";
+                        return minutesRemaining + " minutes";
                     } else {
-                        return timeRemaining + " horas";
+                        return timeRemaining + " hours";
                     }
                 }
             }
