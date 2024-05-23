@@ -351,7 +351,7 @@ public final class Bounties extends JavaPlugin implements CommandExecutor, Liste
         String title = isRaise ? "Raise Bounty" : "Bounty";
 
         // Open bounty inventory
-        Inventory inv = Bukkit.createInventory(null, 27, ChatColor.DARK_GREEN + title);
+        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.DARK_GREEN + title);
         // Clear the inventory
         inv.clear();
         // Add unmovable items
